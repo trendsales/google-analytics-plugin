@@ -34,6 +34,8 @@ public class UniversalAnalyticsPlugin extends CordovaPlugin {
     public static final String SET_APP_VERSION = "setAppVersion";
     public static final String DEBUG_MODE = "debugMode";
     public static final String ENABLE_UNCAUGHT_EXCEPTION_REPORTING = "enableUncaughtExceptionReporting";
+    public static final String GET_FIELD = "getField";
+    public static final String SET_FIELD = "setField";
 
     public Boolean trackerStarted = false;
     public Boolean debugModeEnabled = false;
@@ -133,6 +135,10 @@ public class UniversalAnalyticsPlugin extends CordovaPlugin {
         } else if (ENABLE_UNCAUGHT_EXCEPTION_REPORTING.equals(action)) {
             Boolean enable = args.getBoolean(0);
             this.enableUncaughtExceptionReporting(enable, callbackContext);
+        } else if (GET_FIELD.equals(action)) {
+            this.getField(args.getString(0), callbackContext);
+        } else if (SET_FIELD.equals(action)) {
+            this.setField(args.getString(0), args.getString(1), callbackContext);
         }
         return false;
     }
@@ -199,13 +205,13 @@ public class UniversalAnalyticsPlugin extends CordovaPlugin {
             if(!campaignUrl.equals("")){
                 hitBuilder.setCampaignParamsFromUrl(campaignUrl);
             }
-            
+
             if(!newSession) {
                 tracker.send(hitBuilder.build());
             } else {
                 tracker.send(hitBuilder.setNewSession().build());
             }
-                    
+
             callbackContext.success("Track Screen: " + screenname);
         } else {
             callbackContext.error("Expected one non-empty string argument.");
@@ -236,9 +242,9 @@ public class UniversalAnalyticsPlugin extends CordovaPlugin {
                         .setLabel(label)
                         .setValue(value)
                         .setNewSession()
-                        .build());                
+                        .build());
             }
-            
+
             callbackContext.success("Track Event: " + category);
         } else {
             callbackContext.error("Expected non-empty string arguments.");
@@ -422,5 +428,22 @@ public class UniversalAnalyticsPlugin extends CordovaPlugin {
 
         tracker.enableExceptionReporting(enable);
         callbackContext.success((enable ? "Enabled" : "Disabled") + " uncaught exception reporting");
+    }
+
+    private void getField(String name, CallbackContext callbackContext) {
+        if (!trackerStarted) {
+            callbackContext.error("Tracker not started");
+            return;
+        }
+        callbackContext.success(tracker.get(name));
+    }
+
+    private void setField(String name, String value, CallbackContext callbackContext) {
+        if (!trackerStarted) {
+            callbackContext.error("Tracker not started");
+            return;
+        }
+        tracker.set(name, value);
+        callbackContext.success("Tracker field set");
     }
 }

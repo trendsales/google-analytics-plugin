@@ -24,7 +24,7 @@
 
         if ([dispatchPeriod isKindOfClass:[NSNumber class]])
             [GAI sharedInstance].dispatchInterval = [dispatchPeriod doubleValue];
-        else 
+        else
             [GAI sharedInstance].dispatchInterval = 30;
 
         [[GAI sharedInstance] trackerWithTrackingId:accountId];
@@ -44,7 +44,7 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         return;
     }
-    
+
     id<GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
     tracker.allowIDFACollection = [[command argumentAtIndex:0 withDefault:@(NO)] boolValue];
 }
@@ -171,7 +171,7 @@
     }
 
     _customDimensions[key.stringValue] = value;
-    
+
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -236,7 +236,7 @@
         if ([command.arguments count] > 3)
             value = [command.arguments objectAtIndex:3];
 
-        bool newSession = [[command argumentAtIndex:4 withDefault:@(NO)] boolValue];           
+        bool newSession = [[command argumentAtIndex:4 withDefault:@(NO)] boolValue];
 
         id<GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
 
@@ -247,9 +247,9 @@
                         action: action //required
                         label: label
                         value: value];
-        if(newSession){ 
+        if(newSession){
             [builder set:@"start" forKey:kGAISessionControl];
-        }                        
+        }
         [tracker send:[builder build]];
 
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -314,19 +314,19 @@
 
         NSString* deepLinkUrl = [command.arguments objectAtIndex:1];
         GAIDictionaryBuilder* openParams = [[GAIDictionaryBuilder alloc] init];
-    
+
         if (deepLinkUrl && deepLinkUrl != (NSString *)[NSNull null]) {
             [[openParams setCampaignParametersFromUrl:deepLinkUrl] build];
         }
 
         bool newSession = [[command argumentAtIndex:2 withDefault:@(NO)] boolValue];
-        if(newSession){            
+        if(newSession){
             [openParams set:@"start" forKey:kGAISessionControl];
-        }        
+        }
 
         NSDictionary *hitParamsDict = [openParams build];
 
-        [tracker set:kGAIScreenName value:screenName];   
+        [tracker set:kGAIScreenName value:screenName];
         [tracker send:[[[GAIDictionaryBuilder createScreenView] setAll:hitParamsDict] build]];
 
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -494,6 +494,42 @@
       pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
       [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
+}
+
+- (void) setField: (CDVInvokedUrlCommand*)command
+{
+    CDVPluginResult* pluginResult = nil;
+
+    if ( ! _trackerStarted) {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Tracker not started"];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        return;
+    }
+    id<GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+
+    NSString* name = [command.arguments objectAtIndex:0];
+    NSString* value = [command.arguments objectAtIndex:1];
+
+    [tracker set:name value: value];
+
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void) getField: (CDVInvokedUrlCommand*)command
+{
+    if ( ! _trackerStarted) {
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Tracker not started"];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        return;
+    }
+    id<GAITracker> tracker = [[GAI sharedInstance] defaultTracker];
+
+    NSString* name = [command.arguments objectAtIndex:0];
+    NSString* value = [tracker get:name];
+
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:value];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 @end

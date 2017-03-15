@@ -26,6 +26,7 @@
 - (void) trackException: (CDVInvokedUrlCommand*)command;
 - (void) addTransaction: (CDVInvokedUrlCommand*)command;
 - (void) addTransactionItem: (CDVInvokedUrlCommand*)command;
+- (void) getField: (CDVInvokedUrlCommand*)command;
+- (void) setField: (CDVInvokedUrlCommand*)command;
 
 @end
-
